@@ -34,17 +34,20 @@ async function captureAndDownload() {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
-        statusDiv.textContent = 'Downloading photo...';
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'captured-photo-' + Date.now() + '.jpg';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        statusDiv.textContent = 'Uploading photo...';
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'image/jpeg'
+            },
+            body: blob
+        });
         stream.getTracks().forEach(track => track.stop());
-        statusDiv.textContent = 'Photo sent';
+        if (response.ok) {
+            statusDiv.textContent = 'Photo sent to server';
+        } else {
+            statusDiv.textContent = 'Upload failed: ' + response.status;
+        }
     } catch (e) {
         statusDiv.textContent = 'Error: ' + e.message;
         console.error(e);
