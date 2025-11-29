@@ -23,8 +23,7 @@ document.body.appendChild(canvas);
 
 const preview = document.createElement('img');
 preview.id = 'preview';
-preview.style.maxWidth = '100%';
-preview.style.marginTop = '20px';
+preview.style.display = 'none';
 document.body.appendChild(preview);
 
 async function captureAndDownload() {
