@@ -1,3 +1,11 @@
+import { put } from '@vercel/blob';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ message: 'Method not allowed' });
@@ -9,9 +17,15 @@ export default async function handler(req, res) {
       chunks.push(chunk);
     }
     const buffer = Buffer.concat(chunks);
-    console.log('Received image size bytes:', buffer.length);
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).end(JSON.stringify({ message: 'Photo uploaded successfully', size: buffer.length }));
+    
+    const blob = await put(`photo-${Date.now()}.jpg`, buffer, {
+      access: 'public',
+      contentType: 'image/jpeg',
+    });
+    
+    console.log('Saved image URL:', blob.url);
+    
+    res.status(200).json({ message: 'saved', url: blob.url });
   } catch (e) {
     console.error('Upload error:', e);
     res.status(500).json({ message: 'Server error' });

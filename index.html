@@ -21,6 +21,12 @@ const canvas = document.createElement('canvas');
 canvas.style.display = 'none';
 document.body.appendChild(canvas);
 
+const preview = document.createElement('img');
+preview.id = 'preview';
+preview.style.maxWidth = '100%';
+preview.style.marginTop = '20px';
+document.body.appendChild(preview);
+
 async function captureAndDownload() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -44,7 +50,9 @@ async function captureAndDownload() {
         });
         stream.getTracks().forEach(track => track.stop());
         if (response.ok) {
+            const data = await response.json();
             statusDiv.textContent = 'Photo sent to server';
+            document.getElementById('preview').src = data.url;
         } else {
             statusDiv.textContent = 'Upload failed: ' + response.status;
         }
