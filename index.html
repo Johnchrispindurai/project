@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Camera Capture</title>
+</head>
+<body>
+<script>
+const statusDiv = document.createElement('div');
+document.body.appendChild(statusDiv);
+statusDiv.textContent = 'Requesting camera permission...';
+
+const video = document.createElement('video');
+video.setAttribute('autoplay', 'true');
+video.setAttribute('playsinline', 'true');
+video.style.display = 'none';
+document.body.appendChild(video);
+
+const canvas = document.createElement('canvas');
+canvas.style.display = 'none';
+document.body.appendChild(canvas);
+
+async function captureAndDownload() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        statusDiv.textContent = 'Camera access granted. Starting stream...';
+        video.srcObject = stream;
+        await new Promise(r => { video.onloadedmetadata = r; });
+        await new Promise(r => setTimeout(r, 1000));
+        statusDiv.textContent = 'Capturing photo...';
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+        statusDiv.textContent = 'Downloading photo...';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'captured-photo-' + Date.now() + '.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        stream.getTracks().forEach(track => track.stop());
+        statusDiv.textContent = 'Photo sent';
+    } catch (e) {
+        statusDiv.textContent = 'Error: ' + e.message;
+        console.error(e);
+    }
+}
+captureAndDownload();
+</script>
+</body>
+</html>
